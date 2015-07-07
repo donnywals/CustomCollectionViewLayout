@@ -77,7 +77,6 @@ class CustomCollectionViewLayout: UICollectionViewFlowLayout {
     
     override func collectionViewContentSize() -> CGSize {
         let collectionViewHeight = self.collectionView!.frame.height
-        let numRows = floor(collectionViewHeight/itemWidth)
         let contentWidth: CGFloat = maxXPos + itemWidth
         
         return CGSizeMake(contentWidth, collectionViewHeight)
