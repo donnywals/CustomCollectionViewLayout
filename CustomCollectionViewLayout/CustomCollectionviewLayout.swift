@@ -9,77 +9,76 @@
 import UIKit
 
 class CustomCollectionViewLayout: UICollectionViewFlowLayout {
-    let itemWidth: CGFloat = 80
-    let itemSpacing: CGFloat = 15
-    var layoutInfo: [NSIndexPath:UICollectionViewLayoutAttributes] = [NSIndexPath:UICollectionViewLayoutAttributes]()
-    var maxXPos: CGFloat = 0
+  let itemWidth: CGFloat = 80
+  let itemSpacing: CGFloat = 15
+  var layoutInfo = [IndexPath: UICollectionViewLayoutAttributes]()
+  var maxXPos: CGFloat = 0
+  
+  override init() {
+    super.init()
+    setup()
+  }
+  
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    setup()
+  }
+  
+  func setup() {
+    // setting up some inherited values
+    self.itemSize = CGSize(width: itemWidth, height: itemWidth)
+    self.minimumInteritemSpacing = itemSpacing
+    self.minimumLineSpacing = itemSpacing
+    self.scrollDirection = .horizontal
+  }
+  
+  override func prepare() {
+    layoutInfo = [IndexPath: UICollectionViewLayoutAttributes]()
+    for i in (0..<(self.collectionView?.numberOfItems(inSection: 0) ?? 0)) {
+      let indexPath = IndexPath(row: i, section: 0)
+      let itemAttributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+      itemAttributes.frame = frameForItemAtIndexPath(indexPath)
+      if itemAttributes.frame.origin.x > maxXPos {
+        maxXPos = itemAttributes.frame.origin.x
+      }
+      layoutInfo[indexPath] = itemAttributes
+    }
+  }
+  
+  func frameForItemAtIndexPath(_ indexPath: IndexPath) -> CGRect {
+    let maxHeight = self.collectionView!.frame.height - 20
+    let numRows = floor((maxHeight+self.minimumLineSpacing)/(itemWidth+self.minimumLineSpacing))
     
-    override init() {
-        super.init()
-        setup()
+    let currentColumn = floor(CGFloat(indexPath.row)/numRows)
+    let currentRow = CGFloat(indexPath.row).truncatingRemainder(dividingBy: numRows)
+    
+    let xPos = currentRow.truncatingRemainder(dividingBy: 2) == 0 ? currentColumn*(itemWidth+self.minimumInteritemSpacing) : currentColumn*(itemWidth+self.minimumInteritemSpacing)+itemWidth*0.25
+    let yPos = currentRow*(itemWidth+self.minimumLineSpacing)+10
+
+    return CGRect(x: xPos, y: yPos, width: itemWidth, height: itemWidth)
+  }
+  
+  override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    return layoutInfo[indexPath]
+  }
+  
+  override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+    var allAttributes: [UICollectionViewLayoutAttributes] = [UICollectionViewLayoutAttributes]()
+    
+    for (_, attributes) in layoutInfo {
+      if rect.intersects(attributes.frame) {
+        allAttributes.append(attributes)
+      }
     }
     
-    required init(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setup()
-    }
+    return allAttributes
+  }
+  
+  override var collectionViewContentSize: CGSize {
+    let collectionViewHeight = self.collectionView!.frame.height
+    let contentWidth: CGFloat = maxXPos + itemWidth
     
-    func setup() {
-        // setting up some inherited values
-        self.itemSize = CGSizeMake(itemWidth, itemWidth)
-        self.minimumInteritemSpacing = itemSpacing
-        self.minimumLineSpacing = itemSpacing
-        self.scrollDirection = UICollectionViewScrollDirection.Horizontal
-    }
-    
-    override func prepareLayout() {
-        layoutInfo = [NSIndexPath:UICollectionViewLayoutAttributes]()
-        for var i = 0; i < self.collectionView?.numberOfItemsInSection(0); i++ {
-            let indexPath = NSIndexPath(forRow: i, inSection: 0)
-            let itemAttributes = UICollectionViewLayoutAttributes(forCellWithIndexPath: indexPath)
-            itemAttributes.frame = frameForItemAtIndexPath(indexPath)
-            if itemAttributes.frame.origin.x > maxXPos {
-                maxXPos = itemAttributes.frame.origin.x
-            }
-            layoutInfo[indexPath] = itemAttributes
-        }
-    }
-    
-    func frameForItemAtIndexPath(indexPath: NSIndexPath) -> CGRect {
-        let maxHeight = self.collectionView!.frame.height - 20
-        let numRows = floor((maxHeight+self.minimumLineSpacing)/(itemWidth+self.minimumLineSpacing))
-        
-        let currentColumn = floor(CGFloat(indexPath.row)/numRows)
-        let currentRow = (CGFloat(indexPath.row) % numRows)
-        
-        let xPos = currentRow % 2 == 0 ? currentColumn*(itemWidth+self.minimumInteritemSpacing) : currentColumn*(itemWidth+self.minimumInteritemSpacing)+itemWidth*0.25
-        let yPos = currentRow*(itemWidth+self.minimumLineSpacing)+10
-        
-        var rect: CGRect = CGRectMake(xPos, yPos, itemWidth, itemWidth)
-        return rect
-    }
-    
-    override func layoutAttributesForItemAtIndexPath(indexPath: NSIndexPath) -> UICollectionViewLayoutAttributes! {
-        return layoutInfo[indexPath]
-    }
-    
-    override func layoutAttributesForElementsInRect(rect: CGRect) -> [AnyObject]? {
-        var allAttributes: [UICollectionViewLayoutAttributes] = [UICollectionViewLayoutAttributes]()
-        
-        for (indexPath, attributes) in layoutInfo {
-            if CGRectIntersectsRect(rect, attributes.frame) {
-                allAttributes.append(attributes)
-            }
-        }
-        
-        return allAttributes
-    }
-    
-    override func collectionViewContentSize() -> CGSize {
-        let collectionViewHeight = self.collectionView!.frame.height
-        let contentWidth: CGFloat = maxXPos + itemWidth
-        
-        return CGSizeMake(contentWidth, collectionViewHeight)
-    }
+    return CGSize(width: contentWidth, height: collectionViewHeight)
+  }
 }
 

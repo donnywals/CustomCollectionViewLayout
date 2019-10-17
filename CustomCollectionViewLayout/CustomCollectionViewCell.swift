@@ -9,16 +9,16 @@
 import UIKit
 
 class CustomCollectionViewCell: UICollectionViewCell {
+  
+  @IBOutlet weak var imageView: UIImageView!
+  
+  override func awakeFromNib() {
+    imageView.layer.cornerRadius = 40
+    imageView.clipsToBounds = true
     
-    @IBOutlet weak var imageView: UIImageView!
-    
-    override func awakeFromNib() {
-        imageView.layer.cornerRadius = 40
-        imageView.clipsToBounds = true
-        
-        layer.shadowColor = UIColor.blackColor().CGColor
-        layer.shadowOffset = CGSizeMake(0, 2)
-        layer.shadowRadius = 2
-        layer.shadowOpacity = 0.8
-    }
+    layer.shadowColor = UIColor.black.cgColor
+    layer.shadowOffset = CGSize(width: 0, height: 2)
+    layer.shadowRadius = 2
+    layer.shadowOpacity = 0.8
+  }
 }
